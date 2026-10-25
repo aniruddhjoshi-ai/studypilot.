@@ -99,3 +99,32 @@ $("pgo").onclick=()=>run($("pgo"),$("perr"),async()=>{
  topics.forEach((t,i)=>{const w=h("div","t");w.style.marginTop="12px";w.append(h("div","n",i+1));
   const b=h("div");const l=h("div");l.append(h("b","",t.name+" "),h("span","tag",t.difficulty),h("span","tag","urgency: "+t.urgency),h("span","tag",t.hours+"h"));
   b.append(l,h("div","why",t.why));w.append(b);c.append(w)});
+ o.append(c);
+ const p=h("div","card");p.append(h("b","","Schedule"));
+ (r.plan||[]).forEach(x=>{const l=h("div","why");l.style.marginTop="8px";l.append(h("b","",x.day+": "),document.createTextNode(x.focus));p.append(l)});
+ o.append(p);
+ $("chips").textContent="";topics.forEach(t=>{const b=h("button","",t.name);b.onclick=()=>{$("qt").value=t.name;document.querySelector('[data-t="quiz"]').click()};$("chips").append(b)});
+});
+
+$("sgo").onclick=()=>run($("sgo"),$("serr"),async()=>{
+ const q=$("q").value.trim();if(!q)throw new Error("Paste a question first.");
+ const o=$("sout");o.hidden=false;o.textContent="Thinking…";
+ await sample(`You are a patient tutor. Solve this step by step: name the concept, list what is given and what is asked, work through numbered steps, state the final answer, then add one tip to avoid the common mistake. Plain text only, no markdown symbols.\n\nQuestion:\n${q}`,{onText:({text})=>{o.textContent=text}});
+});
+
+$("qgo").onclick=()=>run($("qgo"),$("qerr"),async()=>{
+ const t=$("qt").value.trim();if(!t)throw new Error("Enter a topic first.");
+ const qs=await sample.json(`Write 5 multiple-choice questions testing real understanding of: ${t}. Mix easy and hard. Return ONLY a JSON array: [{"q":string,"options":[4 strings],"answer":index 0-3,"explain":string under 25 words}]`);
+ let i=0,score=0;const o=$("qout");
+ const show=()=>{o.textContent="";
+  if(i>=qs.length){const c=h("div","card");c.append(h("b","",`Score: ${score}/${qs.length}`),h("div","why",score>=qs.length-1?"Solid. This one has stuck.":"Review this topic again, then retake the quiz."));o.append(c);return}
+  const x=qs[i],c=h("div","card");c.append(h("div","why",`Question ${i+1} of ${qs.length}`),h("b","",x.q));
+  const ex=h("div","why");ex.style.marginTop="10px";
+  x.options.forEach((op,k)=>{const b=h("button","opt",op);b.onclick=()=>{
+   c.querySelectorAll(".opt").forEach((y,j)=>{y.disabled=true;if(j===x.answer)y.classList.add("ok")});
+   if(k===x.answer)score++;else b.classList.add("no");
+   ex.textContent=x.explain;const n=h("button","go",i+1<qs.length?"Next":"See score");n.onclick=()=>{i++;show()};c.append(n)};c.append(b)});
+  c.append(ex);o.append(c)};
+ show();
+});
+</script></body></html>
